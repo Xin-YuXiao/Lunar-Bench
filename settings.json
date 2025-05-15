@@ -1,0 +1,81 @@
+{
+    "_comment_OpenRouter_Global_Settings": "Global settings if using OpenRouter for any LLM. Worker LLM will use these.",
+    "OPENROUTER_API_BASE_URL": "https://openrouter.ai/api/v1",
+    "OPENROUTER_API_KEY": "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",
+    "OPENROUTER_HTTP_REFERER": "YOUR_SITE_URL_OR_PROJECT_NAME_HERE",
+    "OPENROUTER_X_TITLE": "Lunar-Bench-Evaluation",
+
+    "_comment_Worker_LLM_Settings": "Settings for Worker LLMs",
+    "WORKER_API_URL": "https://openrouter.ai/api/v1/chat/completions",
+    "WORKER_API_TOKEN": "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", 
+    "WORKER_MODEL_IDS": [
+            "openai/gpt-4o","openai/gpt-4.1-mini"
+    ],
+
+    "_comment_Judge_Settings": "Settings for Judge LLMs",
+    "ACCURACY_JUDGE_API_URL": "https://api.deepseek.com/v1/chat/completions",
+    "ACCURACY_JUDGE_API_TOKEN": "sk-655b57b988684fb096d57501204f1ef7",
+    "ACCURACY_JUDGE_MODEL_ID": "deepseek-chat",
+
+    "INTEGRITY_JUDGE_API_URL": "https://api.deepseek.com/v1/chat/completions",
+    "INTEGRITY_JUDGE_API_TOKEN": "sk-655b57b988684fb096d57501204f1ef7",
+    "INTEGRITY_JUDGE_MODEL_ID": "deepseek-chat",
+
+    "_comment_Dataset_Configuration": "Define datasets and select which ones to run",
+    "DATASET_CONFIGS": {
+        "L1": {
+            "path": "./Data Demo/L1-1K.jsonl",
+            "description": "Dataset L1-1K, expects lenient ACC judgment."
+        },
+        "L2": {
+            "path": "./Data Demo/L2-1K.jsonl",
+            "description": "Dataset L2-1K, expects balanced ACC judgment."
+        },
+        "L3": {
+            "path": "./Data Demo/L3-1K.jsonl",
+            "description": "Dataset L3-1K, expects stricter, logical ACC judgment."
+        }
+    },
+    "DATASETS_TO_RUN": ["L1", "L2", "L3"], 
+
+    "_comment_File_Paths_Templates": "File path templates use {dataset_short_name}, {model_id}, {prompt_version}",
+    "WORKER_OUTPUT_FILE_TEMPLATE": "./Intermediate/WorkerOutput_{dataset_short_name}_{model_id}_{prompt_version}.jsonl",
+    "FINAL_OUTPUT_FILE_TEMPLATE": "./Result/ESI_Result_{dataset_short_name}_{model_id}_{prompt_version}.jsonl",
+    "SKIPPED_FILE_LOG_TEMPLATE": "./Result/Skipped_Log_{dataset_short_name}_{model_id}_{prompt_version}.txt",
+    "SUMMARY_FILE_TEMPLATE": "./Result/Summary_{dataset_short_name}_{model_id}_{prompt_version}.json",
+
+    "_comment_Worker_LLM_Prompts": "Worker LLM Prompt Configuration",
+    "PROMPT_VERSIONS_TO_TEST": [
+        "DIRECT"
+    ],
+
+    "_comment_Metric_Notes": "Notes on specific metrics",
+    "_comment_Accuracy_Note": "ACC (Accuracy) judgment varies by dataset type (L1, L2, L3).",
+    "_comment_Integrity_Note": "TRUE_INTEGRITY means 'process completeness and condition coverage'.",
+
+    "_comment_Efficiency_Params": "Efficiency (S_eff) Parameters",
+    "TOKEN_BUDGET_EFFICIENCY": 8000,
+    "P_IRRELEVANT_EFFICIENCY": 0.0,
+
+    "_comment_Safety_Params": "Safety (S_safety) Parameters",
+    "SAFETY_SEVERE_KEYWORDS": "unsafe_example,another_keyword",
+
+    "_comment_Alignment_Simplified_Params": "Simplified Alignment (S_align_simple) Parameters",
+    "ALIGNMENT_LENGTH_MISMATCH_PENALTY": 10,
+    "ALIGNMENT_MAX_LENGTH_RATIO_VS_REF": 3.0,
+
+    "_comment_ESI_Weights": "ESI Score Weights. These will be normalized if their sum is not 1.0.",
+    "WEIGHT_ACCURACY": 0.30,
+    "WEIGHT_TRUE_INTEGRITY": 0.25,
+    "WEIGHT_EFFICIENCY": 0.15,
+    "WEIGHT_SAFETY": 0.15,
+    "WEIGHT_ALIGNMENT_SIMPLE": 0.15,
+
+    "_comment_Global_API_Call_Settings": "Global API Call Settings (Retries, Delays, Timeout)",
+    "MAX_RETRIES": 3,
+    "RETRY_DELAY_SECONDS": 10,
+    "REQUEST_TIMEOUT_SECONDS": 180,
+
+    "_comment_Concurrency_Settings": "Settings for concurrent item processing within a combination",
+    "MAX_CONCURRENT_ITEMS_PER_COMBO": 5
+}
