@@ -1,25 +1,25 @@
 {
     "_comment_OpenRouter_Global_Settings": "Global settings if using OpenRouter for any LLM. Worker LLM will use these.",
     "OPENROUTER_API_BASE_URL": "https://openrouter.ai/api/v1",
-    "OPENROUTER_API_KEY": "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",
+    "OPENROUTER_API_KEY": "Your-Key",
     "OPENROUTER_HTTP_REFERER": "YOUR_SITE_URL_OR_PROJECT_NAME_HERE",
     "OPENROUTER_X_TITLE": "Lunar-Bench-Evaluation",
 
     "_comment_Worker_LLM_Settings": "Settings for Worker LLMs",
     "WORKER_API_URL": "https://openrouter.ai/api/v1/chat/completions",
-    "WORKER_API_TOKEN": "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", 
+    "WORKER_API_TOKEN": "Your-Key", 
     "WORKER_MODEL_IDS": [
             "openai/gpt-4o","openai/gpt-4.1-mini"
     ],
 
     "_comment_Judge_Settings": "Settings for Judge LLMs",
-    "ACCURACY_JUDGE_API_URL": "https://api.deepseek.com/v1/chat/completions",
-    "ACCURACY_JUDGE_API_TOKEN": "sk-655b57b988684fb096d57501204f1ef7",
-    "ACCURACY_JUDGE_MODEL_ID": "deepseek-chat",
+    "ACCURACY_JUDGE_API_URL": "https://openrouter.ai/api/v1",
+    "ACCURACY_JUDGE_API_TOKEN": "Your-Key",
+    "ACCURACY_JUDGE_MODEL_ID": "openai/gpt-4o-2024-11-20",
 
-    "INTEGRITY_JUDGE_API_URL": "https://api.deepseek.com/v1/chat/completions",
-    "INTEGRITY_JUDGE_API_TOKEN": "sk-655b57b988684fb096d57501204f1ef7",
-    "INTEGRITY_JUDGE_MODEL_ID": "deepseek-chat",
+    "INTEGRITY_JUDGE_API_URL": "https://openrouter.ai/api/v1",
+    "INTEGRITY_JUDGE_API_TOKEN": "Your-Key",
+    "INTEGRITY_JUDGE_MODEL_ID": "openai/gpt-4o-2024-11-20",
 
     "_comment_Dataset_Configuration": "Define datasets and select which ones to run",
     "DATASET_CONFIGS": {
