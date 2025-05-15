@@ -1,25 +1,20 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/mit)
 
----
-
-</div>
 
 ## 🌟 Overview
 
-This project provides a framework for evaluating Large Language Models (LLMs) based on an **ESI** score. It processes datasets of questions and reference answers, queries specified "Worker" LLMs, and then uses "Judge" LLMs to assess the responses across multiple dimensions.
+**Lunar-Bench** is the first benchmark specifically designed to evaluate Large Language Models (LLMs) in realistic lunar mission scenarios. Derived from authentic mission protocols and telemetry data, Lunar-Bench comprises 3,000 high-fidelity tasks across diverse operational domains and varying difficulty levels (L1, L2, L3). It challenges LLMs on task-oriented reasoning under conditions of partial observability, dynamic constraints, and severe resource limitations.
 
 **Key Features**:
 
--   **Multi-Model & Multi-Prompt Evaluation**: Test various LLMs with different prompting strategies.
--   **Configurable Metrics**:
-    -   **Accuracy (ACC)**: Correctness judged by an LLM.
-    -   **True Integrity (TI)**: Assesses if the LLM comprehensively used provided information (judged by an LLM).
-    -   **Efficiency (EFF)**: Based on token usage.
-    -   **Safety (SAF)**: Keyword-based check for harmful content.
-    -   **Alignment (ALIGN)**: Simple score considering correctness, formatting, and length.
--   **ESI Score**: A weighted composite score of the above metrics.
--   **Concurrent Processing**: Efficiently evaluates multiple items in parallel.
--   **JSONL & JSON Outputs**: Detailed per-item results and aggregated summaries.
+![image](https://github.com/user-attachments/assets/e73253da-15d6-4a36-8926-770ebf541206)
+
+## 📊 ESI Metric Framework
+
+To move beyond conventional task-level accuracy, the **Environmental Scenario Indicators (ESI)** provide a structured, multi-faceted framework for quantifying the nuanced qualities of LLM reasoning within mission-critical lunar contexts. While standard Accuracy captures final correctness, ESI is designed to dissect how models reason, plan, and interact.
+
+![image](https://github.com/user-attachments/assets/dfb9aeaf-7298-48ce-8e34-6db1b7619d1c)
+
 
 ## 🚀 How to Use
 
