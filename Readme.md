@@ -7,13 +7,13 @@
 
 **Key Features**:
 
-![image](https://github.com/user-attachments/assets/e73253da-15d6-4a36-8926-770ebf541206)
+![image](https://github.com/user-attachments/assets/6bb25c7c-f428-41ef-97d2-26dc291ebda6)
 
 ## 📊 ESI Metric Framework
 
 To move beyond conventional task-level accuracy, the **Environmental Scenario Indicators (ESI)** provide a structured, multi-faceted framework for quantifying the nuanced qualities of LLM reasoning within mission-critical lunar contexts. While standard Accuracy captures final correctness, ESI is designed to dissect how models reason, plan, and interact.
 
-![image](https://github.com/user-attachments/assets/dfb9aeaf-7298-48ce-8e34-6db1b7619d1c)
+![image](https://github.com/user-attachments/assets/a6be27bc-e01a-4e2e-b0cb-0c6b50aed81f)
 
 
 ## 🚀 How to Use
