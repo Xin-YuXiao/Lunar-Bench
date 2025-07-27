@@ -1,5 +1,18 @@
-# prompts.py
-import os 
+# -*- coding: utf-8 -*-
+"""
+This file defines prompt templates for interacting with LLMs.
+
+The system involves two primary roles:
+1.  Worker: An LLM that generates answers based on instructions.
+2.  Fallback Extractor / Parser: An LLM invoked only when the primary process 
+    (regular expression parsing) fails. Its purpose is data cleaning and 
+    extraction, not evaluation.
+"""
+import os
+
+# ==============================================================================
+# 1. WORKER PROMPTS (For guiding the Worker LLM to generate answers)
+# ==============================================================================
 
 PROMPT_DIRECT_ANSWER_TEMPLATE = (
     "Based on the 'Background Information (Instruction)' and 'Specific Question (Question)' below, "
@@ -46,49 +59,117 @@ def get_worker_prompt_template(prompt_version_name: str) -> str:
     else:
         raise ValueError(f"Unknown PROMPT_VERSION '{prompt_version_name}'. Available: DIRECT, COT, EXPERT.")
 
-def get_accuracy_judge_prompt_template_for_dataset(dataset_short_name: str) -> str:
-    """Selects the appropriate ACCURACY judge prompt based on the dataset short name."""
-    name_lower = dataset_short_name.lower() 
-    if "l1" in name_lower: 
-        print(f"INFO: Using L1 ACCURACY judge prompt for dataset '{dataset_short_name}'. (Reasonable Path, Approx. Correct Result)")
-        return PROMPT_FOR_JUDGE_L1_ACCURACY_TEMPLATE
-    elif "l2" in name_lower:
-        print(f"INFO: Using L2 ACCURACY judge prompt for dataset '{dataset_short_name}'. (Sensibly Correct, More than Just Related)")
-        return PROMPT_FOR_JUDGE_L2_ACCURACY_TEMPLATE
-    elif "l3" in name_lower:
-        print(f"INFO: Using L3 ACCURACY judge prompt for dataset '{dataset_short_name}'. (Largely Consistent Result)")
-        return PROMPT_FOR_JUDGE_L3_ACCURACY_TEMPLATE
-    else:
-        # Default to L2 (balanced) if no specific L1/L3 match for the short name (e.g. for "Demo")
-        print(f"WARNING: Dataset short name '{dataset_short_name}' does not match L1, L2, or L3 patterns. Defaulting to L2 ACCURACY judge prompt.")
-        return PROMPT_FOR_JUDGE_L2_ACCURACY_TEMPLATE 
+# =================================================================================================
+# 2. FALLBACK ANSWER EXTRACTION PROMPTS (Used only when regex extraction fails, to guide the model in parsing raw output)
+#    Note: This model does not perform final evaluation. It only confirms if the 'Reference Answer' 
+#          is present in the 'Candidate's' messy text.
+# =================================================================================================
 
-PROMPT_FOR_JUDGE_LLM_TRUE_INTEGRITY_TEMPLATE = (
-    "You are a meticulous AI Evaluator focusing on the **completeness and logical integrity** of an AI assistant's thought process and output. Your task is to assess if the AI assistant has thoroughly considered all relevant aspects of the 'Instruction' and 'Question' to arrive at its 'Candidate Output'.\n\n"
-    "**Evaluation Focus: Process Integrity & Completeness**\n"
-    "1.  **Condition Coverage:** Did the AI's output (including any reasoning steps if visible) explicitly or implicitly address all critical conditions, constraints, and pieces of information provided in the 'Instruction' and 'Question'?\n"
-    "2.  **Question Comprehension:** Does the output demonstrate a full understanding of all parts of the 'Question'? Or does it only focus on a subset?\n"
-    "3.  **Information Utilization:** Was relevant information from the 'Instruction' appropriately used in the reasoning or to formulate the answer? Were any crucial pieces of provided information ignored?\n"
-    "4.  **Logical Flow (if reasoning is present):** If a thought process or reasoning steps are visible in the 'Candidate Output (Raw)', are these steps logical, coherent, and without significant gaps or unjustified leaps?\n"
-    "5.  **Completeness of Answer relative to Question:** Even if the final cleaned answer is brief, does the overall output (raw or cleaned, as appropriate) suggest that the AI *considered* what was necessary to answer comprehensively?\n\n"
-    "**Do NOT focus on whether the final answer is correct in this evaluation (that is handled separately). Focus on the *process and completeness of consideration*.**\n\n"
+# For L1: (Loose Extraction - Reasonable Inference)
+PROMPT_FOR_FALLBACK_EXTRACTOR_L1_TEMPLATE = (
+    "You are an AI Data Parser. Your task is to determine if the core information from the 'Reference Answer' can be reasonably inferred from the 'Candidate's Raw Output'. "
+    "The Candidate's output is from another AI and may be malformed. Your goal is to check if the intended answer can be salvaged.\n\n"
+    "**Evaluation Focus: Plausible Inference**\n"
+    "Consider the answer 'salvageable' (`is_judged_correct`: true) if:\n"
+    "1. The Raw Output, through a reasonable line of thought, implies the Reference Answer.\n"
+    "2. The core meaning is approximately correct, even if details are missing or slightly off.\n"
+    "Do not be strict about phrasing. The primary concern is whether a reasonable interpretation of the messy output points to the reference answer.\n\n"
+    "Mark as 'not salvageable' (`is_judged_correct`: false) if the output is fundamentally incorrect, irrelevant, or requires unreasonable leaps of logic to connect to the reference answer.\n\n"
     "Here is the information you need to evaluate:\n"
     "1. Instruction (Original Context):\n```\n{instruction}\n```\n\n"
     "2. Question (Original Question):\n```\n{question}\n```\n\n"
-    "3. Candidate Output (Raw - this may include reasoning steps if provided by the worker AI):\n```\n{candidate_output_raw}\n```\n\n"
-    "4. Candidate Answer (Cleaned - the final concise answer extracted from the raw output):\n```\n{candidate_answer_cleaned}\n```\n\n"
+    "3. Reference Answer (The ground truth to look for):\n```\n{reference_answer}\n```\n\n"
+    "4. Candidate's Raw Output (The messy text to parse):\n```\n{candidate_answer}\n```\n\n"
     "**Output Format:**\n"
-    "Please respond **ONLY** with a JSON object containing two keys:\n"
-    "1. `\"integrity_score\"`: A numerical score from 0 to 100, where:\n"
-    "   - 0-30: Severely lacking integrity; missed most critical conditions or showed flawed reasoning.\n"
-    "   - 31-60: Partially addressed conditions/question parts; some notable omissions or minor logical gaps.\n"
-    "   - 61-90: Mostly complete; addressed most key aspects well with minor room for improvement in thoroughness.\n"
-    "   - 91-100: Excellent integrity; comprehensively considered all relevant conditions and parts of the question with clear, sound reasoning (if visible).\n"
-    "2. `\"integrity_reasoning\"`: A brief explanation for the assigned integrity_score, highlighting key observations about condition coverage, information use, or logical flow.\n\n"
-    "Example JSON response:\n"
-    "{{\n"
-    "  \"integrity_score\": 85,\n"
-    "  \"integrity_reasoning\": \"The AI considered most conditions from the instruction but did not explicitly address the time constraint mentioned in the question.\"\n"
-    "}}\n\n"
-    "Now, provide your evaluation for the given data in the specified JSON format only:"
+    "Respond ONLY with a JSON object with two keys:\n"
+    "1. `\"is_judged_correct\"`: A boolean value (true if the reference answer is plausibly present, false otherwise).\n"
+    "2. `\"reasoning\"`: A brief explanation for your decision.\n\n"
+    "Now, provide your parsing result:"
+)
+
+# For L2: (Standard Extraction - Sensibly Correct)
+PROMPT_FOR_FALLBACK_EXTRACTOR_L2_TEMPLATE = (
+    "You are an AI Data Parser. Your task is to determine if the core information from the 'Reference Answer' is sensibly and directly present within the 'Candidate's Raw Output'. "
+    "The Candidate's output is from another AI and may be malformed. Your goal is to check if the intended answer can be salvaged.\n\n"
+    "**Evaluation Focus: Direct Presence of Core Information**\n"
+    "Consider the answer 'salvageable' (`is_judged_correct`: true) if:\n"
+    "1. The Raw Output directly addresses the core question and its essential information aligns with the Reference Answer.\n"
+    "2. The answer is not just vaguely related but contains the key facts, names, or values from the Reference Answer.\n\n"
+    "Mark as 'not salvageable' (`is_judged_correct`: false) if the core claim is incorrect, the output is irrelevant, or it fails to meaningfully contain the information from the Reference Answer.\n\n"
+    "Here is the information you need to evaluate:\n"
+    "1. Instruction (Original Context):\n```\n{instruction}\n```\n\n"
+    "2. Question (Original Question):\n```\n{question}\n```\n\n"
+    "3. Reference Answer (The ground truth to look for):\n```\n{reference_answer}\n```\n\n"
+    "4. Candidate's Raw Output (The messy text to parse):\n```\n{candidate_answer}\n```\n\n"
+    "**Output Format:**\n"
+    "Respond ONLY with a JSON object with two keys:\n"
+    "1. `\"is_judged_correct\"`: A boolean value (true if the reference answer is directly present, false otherwise).\n"
+    "2. `\"reasoning\"`: A brief explanation for your decision.\n\n"
+    "Now, provide your parsing result:"
+)
+
+# For L3: (Strict Extraction - Largely Consistent)
+PROMPT_FOR_FALLBACK_EXTRACTOR_L3_TEMPLATE = (
+    "You are a strict AI Data Parser. Your task is to determine if the information in the 'Reference Answer' is substantially and factually present within the 'Candidate's Raw Output', allowing for only minor formatting errors. "
+    "The Candidate's output is from another AI and may be malformed.\n\n"
+    "**Evaluation Focus: High-Fidelity Information Match**\n"
+    "Consider the answer 'salvageable' (`is_judged_correct`: true) ONLY if:\n"
+    "1. The primary facts, figures, and entities from the Reference Answer are explicitly stated in the Raw Output.\n"
+    "2. There are no significant factual discrepancies.\n\n"
+    "Mark as 'not salvageable' (`is_judged_correct`: false) if key facts are incorrect, omitted, or misrepresented. Do not tolerate significant deviations from the Reference Answer's content.\n\n"
+    "Here is the information you need to evaluate:\n"
+    "1. Instruction (Original Context):\n```\n{instruction}\n```\n\n"
+    "2. Question (Original Question):\n```\n{question}\n```\n\n"
+    "3. Reference Answer (The ground truth to look for):\n```\n{reference_answer}\n```\n\n"
+    "4. Candidate's Raw Output (The messy text to parse):\n```\n{candidate_answer}\n```\n\n"
+    "**Output Format:**\n"
+    "Respond ONLY with a JSON object with two keys:\n"
+    "1. `\"is_judged_correct\"`: A boolean value (true if the reference answer is verifiably present, false otherwise).\n"
+    "2. `\"reasoning\"`: A brief explanation for your decision.\n\n"
+    "Now, provide your parsing result:"
+)
+
+
+def get_fallback_extractor_prompt_template(dataset_short_name: str) -> str:
+    """
+    Selects the appropriate FALLBACK EXTRACTOR prompt based on the dataset short name.
+    This is used when regex parsing fails.
+    """
+    name_lower = dataset_short_name.lower()
+    if "l1" in name_lower:
+        print(f"INFO: Using L1 FALLBACK EXTRACTOR prompt for dataset '{dataset_short_name}'. (Leniency: Reasonable Inference)")
+        return PROMPT_FOR_FALLBACK_EXTRACTOR_L1_TEMPLATE
+    elif "l2" in name_lower:
+        print(f"INFO: Using L2 FALLBACK EXTRACTOR prompt for dataset '{dataset_short_name}'. (Leniency: Sensibly Correct)")
+        return PROMPT_FOR_FALLBACK_EXTRACTOR_L2_TEMPLATE
+    elif "l3" in name_lower:
+        print(f"INFO: Using L3 FALLBACK EXTRACTOR prompt for dataset '{dataset_short_name}'. (Leniency: Largely Consistent)")
+        return PROMPT_FOR_FALLBACK_EXTRACTOR_L3_TEMPLATE
+    else:
+        # Default to L2 (balanced) if no specific L1/L3 match
+        print(f"WARNING: Dataset short name '{dataset_short_name}' does not match L1, L2, or L3 patterns. Defaulting to L2 FALLBACK EXTRACTOR prompt.")
+        return PROMPT_FOR_FALLBACK_EXTRACTOR_L2_TEMPLATE
+
+# ==============================================================================
+# 3. DIAGNOSTIC PROMPTS (For analyzing the integrity of the Worker LLM's thought process)
+# ==============================================================================
+
+PROMPT_FOR_INTEGRITY_ANALYZER_TEMPLATE = (
+    "You are a meticulous AI Process Analyzer. Your task is to assess the **completeness and logical integrity** of an AI assistant's thought process (if visible) and its final output, based on the provided 'Instruction' and 'Question'.\n\n"
+    "**Evaluation Focus: Process Integrity & Completeness of Thought**\n"
+    "1.  **Condition Coverage:** Did the AI's output address all critical conditions and constraints?\n"
+    "2.  **Question Comprehension:** Does the output demonstrate a full understanding of all parts of the Question?\n"
+    "3.  **Information Utilization:** Was all relevant information from the 'Instruction' appropriately used?\n"
+    "4.  **Logical Flow:** If reasoning steps are visible, are they logical, coherent, and without significant gaps?\n\n"
+    "**Do NOT focus on whether the final answer is correct. Focus on the *process and completeness of consideration*.**\n\n"
+    "Here is the information you need to analyze:\n"
+    "1. Instruction (Original Context):\n```\n{instruction}\n```\n\n"
+    "2. Question (Original Question):\n```\n{question}\n```\n\n"
+    "3. Candidate Output (Raw - this may include reasoning steps):\n```\n{candidate_output_raw}\n```\n\n"
+    "4. Candidate Answer (Cleaned - the final answer extracted from the raw output):\n```\n{candidate_answer_cleaned}\n```\n\n"
+    "**Output Format:**\n"
+    "Respond ONLY with a JSON object containing two keys:\n"
+    "1. `\"integrity_score\"`: A numerical score from 0 to 100, reflecting the completeness of the thought process.\n"
+    "2. `\"integrity_reasoning\"`: A brief explanation for the assigned score.\n\n"
+    "Now, provide your analysis:"
 )
