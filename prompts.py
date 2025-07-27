@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-This file defines prompt templates for interacting with LLMs.
+This file defines prompt templates for interacting with Large Language Models (LLMs).
 
 The system involves two primary roles:
 1.  Worker: An LLM that generates answers based on instructions.
@@ -130,25 +130,31 @@ PROMPT_FOR_FALLBACK_EXTRACTOR_L3_TEMPLATE = (
 )
 
 
-def get_fallback_extractor_prompt_template(dataset_short_name: str) -> str:
+def get_fallback_extractor_prompt_template(level_name: str) -> str:
     """
-    Selects the appropriate FALLBACK EXTRACTOR prompt based on the dataset short name.
+    Selects the appropriate FALLBACK EXTRACTOR prompt based on the desired strictness level.
     This is used when regex parsing fails.
+    
+    Args:
+        level_name (str): The desired strictness level. Must be one of 'L1', 'L2', or 'L3'.
+        
+    Returns:
+        str: The corresponding prompt template.
+        
+    Raises:
+        ValueError: If an unknown level_name is provided.
     """
-    name_lower = dataset_short_name.lower()
-    if "l1" in name_lower:
-        print(f"INFO: Using L1 FALLBACK EXTRACTOR prompt for dataset '{dataset_short_name}'. (Leniency: Reasonable Inference)")
+    if level_name == "L1":
+        print(f"INFO: Using L1 FALLBACK EXTRACTOR prompt. (Leniency: Reasonable Inference)")
         return PROMPT_FOR_FALLBACK_EXTRACTOR_L1_TEMPLATE
-    elif "l2" in name_lower:
-        print(f"INFO: Using L2 FALLBACK EXTRACTOR prompt for dataset '{dataset_short_name}'. (Leniency: Sensibly Correct)")
+    elif level_name == "L2":
+        print(f"INFO: Using L2 FALLBACK EXTRACTOR prompt. (Leniency: Sensibly Correct)")
         return PROMPT_FOR_FALLBACK_EXTRACTOR_L2_TEMPLATE
-    elif "l3" in name_lower:
-        print(f"INFO: Using L3 FALLBACK EXTRACTOR prompt for dataset '{dataset_short_name}'. (Leniency: Largely Consistent)")
+    elif level_name == "L3":
+        print(f"INFO: Using L3 FALLBACK EXTRACTOR prompt. (Leniency: Largely Consistent)")
         return PROMPT_FOR_FALLBACK_EXTRACTOR_L3_TEMPLATE
     else:
-        # Default to L2 (balanced) if no specific L1/L3 match
-        print(f"WARNING: Dataset short name '{dataset_short_name}' does not match L1, L2, or L3 patterns. Defaulting to L2 FALLBACK EXTRACTOR prompt.")
-        return PROMPT_FOR_FALLBACK_EXTRACTOR_L2_TEMPLATE
+        raise ValueError(f"Unknown level_name '{level_name}'. Available: L1, L2, L3.")
 
 # ==============================================================================
 # 3. DIAGNOSTIC PROMPTS (For analyzing the integrity of the Worker LLM's thought process)
