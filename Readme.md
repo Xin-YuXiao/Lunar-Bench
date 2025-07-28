@@ -1,6 +1,6 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/mit)
 
-[Update] Updated naming and logic errors in Prompt.py
+[Update] Updated naming and logic errors in Prompt.py in 7/27 4.21 P.M.
 
 ## 🌟 Overview
 
